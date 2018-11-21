@@ -421,7 +421,7 @@ void _stack_close_to(dirstack_t *stack, unsigned int level)
         dirstack_item_t *prev = stack_get_item(stack, i-1);
         git_oid new_oid;
 
-        C(git_treebuilder_write(&new_oid, stack->repo, cur->tb));
+        C(git_treebuilder_write(&new_oid, cur->tb));
         git_treebuilder_free(cur->tb);
 
         C(git_treebuilder_insert(0, prev->tb, cur->name,
@@ -450,7 +450,7 @@ void _handle_stack(dirstack_t *stack, char **path_c, unsigned int len)
         if (!s->name)
         {
             s->name = strdup(path_c[level-1]);
-            C(git_treebuilder_create(&s->tb, 0));
+            C(git_treebuilder_new(&s->tb, stack->repo, NULL));
             stack->depth = level + 1;
             continue;
         }
@@ -466,7 +466,7 @@ void _handle_stack(dirstack_t *stack, char **path_c, unsigned int len)
         A(s->name != 0, "stack error");
         A(s->tb != 0, "stack error");
 
-        C(git_treebuilder_create(&s->tb, 0));
+        C(git_treebuilder_new(&s->tb, stack->repo, NULL));
         s->name = strdup(path_c[level-1]);
         stack->depth = level + 1;
     }
@@ -479,7 +479,7 @@ void stack_open(dirstack_t *stack, git_repository *repo)
 
     di = stack_get_item(stack, 0);
 
-    C(git_treebuilder_create(&di->tb, 0));
+    C(git_treebuilder_new(&di->tb, repo, NULL));
     stack->depth = 1;
     stack->repo = repo;
 }
@@ -559,7 +559,7 @@ int stack_close(dirstack_t *stack, git_oid *new_oid)
 
     di = stack_get_item(stack, 0);
 
-    C(git_treebuilder_write(new_oid, stack->repo, di->tb));
+    C(git_treebuilder_write(new_oid, di->tb));
     git_treebuilder_free(di->tb);
 
     free(stack->item);
@@ -1098,7 +1098,7 @@ int main(int argc, char *argv[])
         if (!git_oid_iszero(&tf->last))
         {
             tag = local_sprintf("refs/heads/%s%s", git_tag_prefix, tf->name);
-            C(git_reference_create(0, tf->repo, tag, &tf->last, 1));
+            C(git_reference_create(0, tf->repo, tag, &tf->last, 1, NULL));
             printf("branch %s%s is now at %s\n",
                     git_tag_prefix, tf->name,
                     git_oid_tostr(oids, GIT_OID_HEXSZ+1, &tf->last));
