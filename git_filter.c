@@ -1017,6 +1017,7 @@ int main(int argc, char *argv[])
 
     parse_config_file(argv[1]);
 
+    C(git_libgit2_init());
     C(git_repository_open(&repo, git_repo_name));
     if (!git_repository_is_bare(repo))
     {
@@ -1117,6 +1118,7 @@ int main(int argc, char *argv[])
 
     git_revwalk_free(walker);
     git_repository_free(repo);
+    git_libgit2_shutdown();
 
 #if MALLOC_STATS
     malloc_stats();
